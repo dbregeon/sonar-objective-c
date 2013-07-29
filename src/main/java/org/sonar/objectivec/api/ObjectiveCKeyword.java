@@ -50,27 +50,14 @@ public enum ObjectiveCKeyword implements TokenType {
     AT_SYNTHESIZE("@synthesize"),
     AT_DYNAMIC("@dynamic"),
 
-    // exception handling
-
-    AT_THROW("@throw"),
-    AT_TRY("@try"),
-    AT_CATCH("@catch"),
-    AT_FINALLY("@finally"),
-
     // remaining directives
 
-    AT_END("@end"), // ends protocol/class/category declaration/implementation
+    END("@end"), // ends protocol/class/category declaration/implementation
     AT_SYNCHRONIZED("@synchronized"), // mutex
     AT_AUTORELEASEPOOL("@autoreleasepool"),
     AT_SELECTOR("@selector"), // returns SEL type of a method
     AT_ENCODE("@encode"), // return char encoding of a type
     AT_COMPATIBILITY_ALIAS("@compatibility_alias"),
-
-    // memory management
-
-    ALLOC("alloc"),
-    RELEASE("release"),
-    AUTORELEASE("autorelease"),
 
     // retain is defined in property modifiers
     // property modifiers
@@ -135,19 +122,24 @@ public enum ObjectiveCKeyword implements TokenType {
 
     // obj-c specific
 
-    BOOL("BOOL"),
-    SUPER("super"),
-    ID("id"),
-    CLASS("Class"),
-    IMP("IMP"),
-    SEL("SEL"),
-    NIL("nil"),
-    YES("YES"),
-    NO("NO");
+//    SUPER("super"),
+//    SELF("self"),
+//    NIL("nil"),
+//    YES("YES"),
+//    NO("NO"),
+
+    // exception handling
+
+    THROW("@throw"),
+    FINALLY("@finally"),
+    CATCH("@catch"),
+    TRY("@try"),
+
+    INLINE("inline");
 
     private final String value;
 
-    private ObjectiveCKeyword(String value) {
+    private ObjectiveCKeyword(final String value) {
         this.value = value;
     }
 
@@ -159,13 +151,13 @@ public enum ObjectiveCKeyword implements TokenType {
         return value;
     }
 
-    public boolean hasToBeSkippedFromAst(AstNode node) {
+    public boolean hasToBeSkippedFromAst(final AstNode node) {
         return false;
     }
 
     public static String[] keywordValues() {
-        ObjectiveCKeyword[] keywordsEnum = ObjectiveCKeyword.values();
-        String[] keywords = new String[keywordsEnum.length];
+        final ObjectiveCKeyword[] keywordsEnum = ObjectiveCKeyword.values();
+        final String[] keywords = new String[keywordsEnum.length];
         for (int i = 0; i < keywords.length; i++) {
             keywords[i] = keywordsEnum[i].getValue();
         }

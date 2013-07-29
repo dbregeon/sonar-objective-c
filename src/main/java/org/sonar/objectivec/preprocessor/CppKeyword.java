@@ -17,30 +17,47 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package org.sonar.objectivec.api;
+package org.sonar.objectivec.preprocessor;
 
 import com.sonar.sslr.api.AstNode;
 import com.sonar.sslr.api.TokenType;
 
-public enum ObjectiveCTokenType implements TokenType {
+/**
+ * C++ Standard, Section 16 "Preprocessing directives"
+ */
+public enum CppKeyword implements TokenType {
+    IF("#if"), IFDEF("#ifdef"), IFNDEF("#ifndef"), ELIF("#elif"), ELSE("#else"), ENDIF(
+            "#endif"), INCLUDE("#include"), IMPORT("#import"), DEFINE("#define"), UNDEF(
+            "#undef"), LINE("#line"), ERROR("#error"), PRAGMA("#pragma"),
 
-    PREPROCESSOR,
-    NUMERIC_LITERAL,
-    STRING_LITERAL,
-    STRING,
-    CHARACTER,
-    WS;
+    // extensions
+    WARNING("#warning"), INCLUDE_NEXT("#include_next");
+
+    private final String value;
+
+    private CppKeyword(final String value) {
+        this.value = value;
+    }
 
     public String getName() {
         return name();
     }
 
     public String getValue() {
-        return name();
+        return value;
     }
 
     public boolean hasToBeSkippedFromAst(final AstNode node) {
-        return this == WS;
+        return false;
+    }
+
+    public static String[] keywordValues() {
+        final CppKeyword[] keywordsEnum = CppKeyword.values();
+        final String[] keywords = new String[keywordsEnum.length];
+        for (int i = 0; i < keywords.length; i++) {
+            keywords[i] = keywordsEnum[i].getValue();
+        }
+        return keywords;
     }
 
 }

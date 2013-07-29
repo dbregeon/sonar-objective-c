@@ -20,26 +20,53 @@
 package org.sonar.objectivec;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.sonar.squid.api.SquidConfiguration;
 
 public class ObjectiveCConfiguration extends SquidConfiguration {
 
     private boolean ignoreHeaderComments;
+    private List<String> includeDirectories = new ArrayList<String>();
+    private String baseDir;
 
     public ObjectiveCConfiguration() {
     }
 
-    public ObjectiveCConfiguration(Charset charset) {
+    public ObjectiveCConfiguration(final Charset charset) {
         super(charset);
     }
 
-    public void setIgnoreHeaderComments(boolean ignoreHeaderComments) {
+    public void setIgnoreHeaderComments(final boolean ignoreHeaderComments) {
         this.ignoreHeaderComments = ignoreHeaderComments;
     }
 
     public boolean getIgnoreHeaderComments() {
         return ignoreHeaderComments;
     }
+
+    public void setIncludeDirectories(final List<String> directories) {
+        includeDirectories = directories;
+      }
+
+      public void setIncludeDirectories(final String[] includeDirectories) {
+        if (includeDirectories != null) {
+          setIncludeDirectories(Arrays.asList(includeDirectories));
+        }
+      }
+
+      public List<String> getIncludeDirectories() {
+        return includeDirectories;
+      }
+
+      public void setBaseDir(final String baseDir) {
+        this.baseDir = baseDir;
+      }
+
+      public String getBaseDir() {
+        return baseDir;
+      }
 
 }

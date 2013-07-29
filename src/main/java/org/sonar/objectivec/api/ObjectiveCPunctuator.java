@@ -41,31 +41,30 @@ public enum ObjectiveCPunctuator implements TokenType {
     SLASHEQ("/="),
     SLASH("/"),
 
+    // Comparison/relational operators
+    EQ("=="),
+    NOT_EQ("!="),
     LT("<"),
+    GT(">"),
+    LT_EQ("<="),
+    GT_EQ(">="),
+
+
     LTLT("<<"),
-    LTEQ("<="),
     LTLTEQ("<<="),
 
-    GT(">"),
     GTGT(">>"),
-    GTEQ(">="),
     GTGTEQ(">>="),
 
-    EQ("="),
-    EQEQ("=="),
+    ASSIGN("="),
 
     TILDE("~"),
 
-    EXCL("!"),
-    EXCLEQ("!="),
-
     AMP("&"),
-    AMPAMP("&&"),
     AMPEQ("&="),
     AMPAMPEX("&&="),
 
     BAR("|"),
-    BARBAR("||"),
     BAREQ("|="),
     BARBAREQ("||="),
 
@@ -77,8 +76,8 @@ public enum ObjectiveCPunctuator implements TokenType {
 
     LCURLYBRACE("{"),
     RCURLYBRACE("}"),
-    LPARENTHESIS("("),
-    RPARENTHESIS(")"),
+    LEFT_PARENTHESIS("("),
+    RIGHT_PARENTHESIS(")"),
     LBRACKET("["),
     RBRACKET("]"),
 
@@ -89,12 +88,21 @@ public enum ObjectiveCPunctuator implements TokenType {
 
     MINUSLT("->"),
     MINUSLTSTAR("->*"),
-    DOTSTAR(".*");
+    DOTSTAR(".*"),
+
+    AND("&&"),
+    OR("||"),
+    NOT("!"),
+
+    DOUBLE_QUOTES("\""),
+    AT("@"),
+    DOT("."),
+    TRIPLE_DOT("...");
 
     private final String value;
 
-    private ObjectiveCPunctuator(String word) {
-        this.value = word;
+    private ObjectiveCPunctuator(final String word) {
+        value = word;
     }
 
     public String getName() {
@@ -105,7 +113,7 @@ public enum ObjectiveCPunctuator implements TokenType {
         return value;
     }
 
-    public boolean hasToBeSkippedFromAst(AstNode node) {
+    public boolean hasToBeSkippedFromAst(final AstNode node) {
         return false;
     }
 

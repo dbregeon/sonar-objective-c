@@ -20,19 +20,16 @@
 package org.sonar.plugins.objectivec.core;
 
 import org.sonar.api.batch.AbstractSourceImporter;
-import org.sonar.api.batch.SensorContext;
-import org.sonar.api.resources.InputFileUtils;
-import org.sonar.api.resources.ProjectFileSystem;
 
 public class ObjectiveCSourceImporter extends AbstractSourceImporter {
 
-    public ObjectiveCSourceImporter(ObjectiveC objectivec) {
+    public ObjectiveCSourceImporter(final ObjectiveC objectivec) {
         super(objectivec);
     }
 
-    protected void analyse(ProjectFileSystem fileSystem, SensorContext context) {
-        parseDirs(context, InputFileUtils.toFiles(fileSystem.mainFiles(ObjectiveC.KEY)), fileSystem.getSourceDirs(), false, fileSystem.getSourceCharset());
-    }
+//    protected void analyse(ProjectFileSystem fileSystem, SensorContext context) {
+//        parseDirs(context, InputFileUtils.toFiles(fileSystem.mainFiles(ObjectiveC.KEY)), fileSystem.getSourceDirs(), false, fileSystem.getSourceCharset());
+//    }
 
     @Override
     public String toString() {

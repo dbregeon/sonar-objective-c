@@ -30,7 +30,8 @@ public enum ObjectiveCMetric implements MetricDef {
     COMMENT_BLANK_LINES,
     STATEMENTS,
     COMPLEXITY,
-    FUNCTIONS;
+    FUNCTIONS,
+    CLASSES;
 
     public String getName() {
         return name();

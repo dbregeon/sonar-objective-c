@@ -33,10 +33,16 @@ import org.sonar.plugins.objectivec.cpd.ObjectiveCCpdMapping;
 import com.google.common.collect.ImmutableList;
 
 @Properties({
+        @Property(
+            key = ObjectiveCPlugin.INCLUDE_DIRECTORIES_KEY,
+            defaultValue = "",
+            name = "Directories to search imported and included files in",
+            description = "The include directories may be defined either relative to projects' root or absolute.",
+            global = true,
+            project = true),
         @Property(key = ObjectiveCCoverageSensor.REPORT_PATTERN_KEY, defaultValue = ObjectiveCCoverageSensor.DEFAULT_REPORT_PATTERN, name = "Path to unit test coverage report(s)", description = "Relative to projects' root. Ant patterns are accepted", global = false, project = true),
         @Property(key = OCLintSensor.REPORT_PATH_KEY, defaultValue = OCLintSensor.DEFAULT_REPORT_PATH, name = "Path to oclint pmd formatted report", description = "Relative to projects' root.", global = false, project = true), })
 public class ObjectiveCPlugin extends SonarPlugin {
-
     public List<Class<? extends Extension>> getExtensions() {
         return ImmutableList.of(ObjectiveC.class,
                 ObjectiveCSourceImporter.class,
@@ -61,11 +67,12 @@ public class ObjectiveCPlugin extends SonarPlugin {
 
     // Global Objective C constants
     public static final String FALSE = "false";
+    public static final String PROPERTY_PREFIX = "sonar.objectivec";
 
     public static final String FILE_SUFFIXES_KEY = "sonar.objectivec.file.suffixes";
     public static final String FILE_SUFFIXES_DEFVALUE = "h,m";
+    public static final String INCLUDE_DIRECTORIES_KEY = PROPERTY_PREFIX + ".include_directories";
 
-    public static final String PROPERTY_PREFIX = "sonar.objectivec";
 
     public static final String TEST_FRAMEWORK_KEY = PROPERTY_PREFIX
             + ".testframework";

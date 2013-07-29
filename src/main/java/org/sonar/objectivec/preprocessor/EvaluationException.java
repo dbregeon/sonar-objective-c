@@ -17,18 +17,18 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package org.sonar.objectivec.api;
+package org.sonar.objectivec.preprocessor;
 
-import org.junit.Test;
+public final class EvaluationException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+    private final String why;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
-public class ObjectiveCPunctuatorTest {
-
-    @Test
-    public void test() {
-        assertThat(ObjectiveCPunctuator.values().length, is(48));
+    public EvaluationException(final String why) {
+        this.why = why;
     }
 
+    @Override
+    public String toString() {
+        return why;
+    }
 }

@@ -29,23 +29,24 @@ import org.junit.Test;
 import org.sonar.objectivec.api.ObjectiveCMetric;
 import org.sonar.squid.api.SourceFile;
 
-public class ObjectiveCAstScannerTest {
+
+public final class ObjectiveCAstScannerTest {
 
     @Test
     public void lines() {
-        SourceFile file = ObjectiveCAstScanner.scanSingleFile(new File("src/test/resources/objcSample.h"));
+        final SourceFile file = ObjectiveCAstScanner.scanSingleFile(new File("src/test/resources/objcSample.h"));
         assertThat(file.getInt(ObjectiveCMetric.LINES), is(18));
     }
 
     @Test
     public void lines_of_code() {
-        SourceFile file = ObjectiveCAstScanner.scanSingleFile(new File("src/test/resources/objcSample.h"));
-        assertThat(file.getInt(ObjectiveCMetric.LINES_OF_CODE), is(5));
+        final SourceFile file = ObjectiveCAstScanner.scanSingleFile(new File("src/test/resources/objcSample.h"));
+        assertThat(file.getInt(ObjectiveCMetric.LINES_OF_CODE), is(4));
     }
 
     @Test
     public void comments() {
-        SourceFile file = ObjectiveCAstScanner.scanSingleFile(new File("src/test/resources/objcSample.h"));
+        final SourceFile file = ObjectiveCAstScanner.scanSingleFile(new File("src/test/resources/objcSample.h"));
         assertThat(file.getInt(ObjectiveCMetric.COMMENT_BLANK_LINES), is(3));
         assertThat(file.getInt(ObjectiveCMetric.COMMENT_LINES), is(4));
         assertThat(file.getNoSonarTagLines(), hasItem(10));

@@ -24,17 +24,19 @@ import static com.sonar.sslr.test.lexer.LexerMatchers.hasToken;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import java.io.File;
 import java.util.List;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.sonar.objectivec.api.ObjectiveCKeyword;
+import org.sonar.objectivec.api.ObjectiveCPunctuator;
+import org.sonar.objectivec.api.ObjectiveCTokenType;
 
 import com.sonar.sslr.api.GenericTokenType;
 import com.sonar.sslr.api.Token;
 import com.sonar.sslr.impl.Lexer;
 
-public class ObjectiveCLexerTest {
+public final class ObjectiveCLexerTest {
 
     private static Lexer lexer;
 
@@ -62,22 +64,89 @@ public class ObjectiveCLexerTest {
     }
 
     @Test
-    public void lexLineOfCode() {
-        assertThat(lexer.lex("[self init];"), hasToken("[self", GenericTokenType.LITERAL));
+    public void lexMethodInvocation() {
+        final List<Token> tokens = lexer.lex("[self init];");
+        assertThat(tokens.size(), equalTo(6));
+        assertThat(tokens, hasToken("[", ObjectiveCPunctuator.LBRACKET));
+        assertThat(tokens, hasToken("self", GenericTokenType.IDENTIFIER));
+        assertThat(tokens, hasToken("init", GenericTokenType.IDENTIFIER));
+        assertThat(tokens, hasToken("]", ObjectiveCPunctuator.RBRACKET));
+        assertThat(tokens, hasToken(";", ObjectiveCPunctuator.SEMICOLON));
+        assertThat(tokens, hasToken(GenericTokenType.EOF));
+    }
+
+    @Test
+    public void lexArrayLiteral() {
+        final List<Token> tokens = lexer.lex("@[1, 2]");
+        assertThat(tokens.size(), equalTo(7));
+        assertThat(tokens, hasToken("@", ObjectiveCPunctuator.AT));
+        assertThat(tokens, hasToken("[", ObjectiveCPunctuator.LBRACKET));
+        assertThat(tokens, hasToken("1", ObjectiveCTokenType.NUMERIC_LITERAL));
+        assertThat(tokens, hasToken(",", ObjectiveCPunctuator.COMMA));
+        assertThat(tokens, hasToken("2", ObjectiveCTokenType.NUMERIC_LITERAL));
+        assertThat(tokens, hasToken("]", ObjectiveCPunctuator.RBRACKET));
+        assertThat(tokens, hasToken(GenericTokenType.EOF));
+    }
+
+    @Test
+    public void lexIfStatement() {
+        final List<Token> tokens = lexer.lex("if(test) {toto = test}");
+        assertThat(tokens.size(), equalTo(10));
+        assertThat(tokens, hasToken("if", ObjectiveCKeyword.IF));
+        assertThat(tokens, hasToken("(", ObjectiveCPunctuator.LEFT_PARENTHESIS));
+        assertThat(tokens, hasToken("test", GenericTokenType.IDENTIFIER));
+        assertThat(tokens, hasToken(")", ObjectiveCPunctuator.RIGHT_PARENTHESIS));
+        assertThat(tokens, hasToken("{", ObjectiveCPunctuator.LCURLYBRACE));
+        assertThat(tokens, hasToken("toto", GenericTokenType.IDENTIFIER));
+        assertThat(tokens, hasToken("=", ObjectiveCPunctuator.ASSIGN));
+        assertThat(tokens, hasToken("test", GenericTokenType.IDENTIFIER));
+        assertThat(tokens, hasToken("}", ObjectiveCPunctuator.RCURLYBRACE));
+        assertThat(tokens, hasToken(GenericTokenType.EOF));
     }
 
     @Test
     public void lexEmptyLine() {
-        List<Token> tokens = lexer.lex("\n");
+        final List<Token> tokens = lexer.lex("\n");
         assertThat(tokens.size(), equalTo(1));
         assertThat(tokens, hasToken(GenericTokenType.EOF));
     }
 
     @Test
-    public void lexSampleFile() {
-        List<Token> tokens = lexer.lex(new File("src/test/resources/objcSample.h"));
-        assertThat(tokens.size(), equalTo(16));
+    public void lexStringLiteral() {
+        final List<Token> tokens = lexer.lex("@\"test\"");
+        assertThat(tokens.size(), equalTo(2));
+        assertThat(tokens, hasToken("@\"test\"", ObjectiveCTokenType.STRING_LITERAL));
         assertThat(tokens, hasToken(GenericTokenType.EOF));
     }
+
+    @Test
+    public void lexLocalVariableAssignment() {
+        final List<Token> tokens = lexer.lex("NSString * test = toto;");
+        assertThat(tokens.size(), equalTo(7));
+        assertThat(tokens, hasToken("NSString", GenericTokenType.IDENTIFIER));
+        assertThat(tokens, hasToken("*", ObjectiveCPunctuator.STAR));
+        assertThat(tokens, hasToken("test", GenericTokenType.IDENTIFIER));
+        assertThat(tokens, hasToken("=", ObjectiveCPunctuator.ASSIGN));
+        assertThat(tokens, hasToken("toto", GenericTokenType.IDENTIFIER));
+        assertThat(tokens, hasToken(";", ObjectiveCPunctuator.SEMICOLON));
+        assertThat(tokens, hasToken(GenericTokenType.EOF));
+    }
+
+    @Test
+    public void lexNestedMethodInvocation() {
+        final List<Token> tokens = lexer.lex("[[UIBarButtonItem alloc] initWithTitle:@\"Back\"]");
+        assertThat(tokens.size(), equalTo(10));
+        assertThat(tokens, hasToken("[", ObjectiveCPunctuator.LBRACKET));
+        assertThat(tokens, hasToken("[", ObjectiveCPunctuator.LBRACKET));
+        assertThat(tokens, hasToken("UIBarButtonItem", GenericTokenType.IDENTIFIER));
+        assertThat(tokens, hasToken("alloc", GenericTokenType.IDENTIFIER));
+        assertThat(tokens, hasToken("]", ObjectiveCPunctuator.RBRACKET));
+        assertThat(tokens, hasToken("initWithTitle", GenericTokenType.IDENTIFIER));
+        assertThat(tokens, hasToken(":", ObjectiveCPunctuator.COLON));
+        assertThat(tokens, hasToken("@\"Back\"", ObjectiveCTokenType.STRING_LITERAL));
+        assertThat(tokens, hasToken("]", ObjectiveCPunctuator.RBRACKET));
+        assertThat(tokens, hasToken(GenericTokenType.EOF));
+    }
+
 
 }

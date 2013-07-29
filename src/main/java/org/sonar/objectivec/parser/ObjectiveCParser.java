@@ -22,23 +22,58 @@ package org.sonar.objectivec.parser;
 import org.sonar.objectivec.ObjectiveCConfiguration;
 import org.sonar.objectivec.api.ObjectiveCGrammar;
 import org.sonar.objectivec.lexer.ObjectiveCLexer;
+import org.sonar.objectivec.preprocessor.ObjectiveCPreprocessor;
+import org.sonar.squid.api.SourceProject;
 
 import com.sonar.sslr.impl.Parser;
+import com.sonar.sslr.impl.events.ExtendedStackTrace;
 import com.sonar.sslr.impl.events.ParsingEventListener;
+import com.sonar.sslr.squid.SquidAstVisitorContext;
+import com.sonar.sslr.squid.SquidAstVisitorContextImpl;
 
 public class ObjectiveCParser {
+    private static class ObjectiveCParseEventPropagator extends ParsingEventListener {
+        private final ObjectiveCPreprocessor objectivecpp;
+        private final SquidAstVisitorContext<ObjectiveCGrammar> astVisitorContext;
+
+        ObjectiveCParseEventPropagator(final ObjectiveCPreprocessor pp, final SquidAstVisitorContext<ObjectiveCGrammar> astVisitorContext) {
+          objectivecpp = pp;
+          this.astVisitorContext = astVisitorContext;
+        }
+
+        @Override
+        public void beginLex() {
+            objectivecpp.beginPreprocessing(astVisitorContext.getFile());
+        }
+     }
+
+    private static ObjectiveCParseEventPropagator parseEventPropagator;
 
     private ObjectiveCParser() {
     }
 
-    public static Parser<ObjectiveCGrammar> create(ParsingEventListener... parsingEventListeners) {
-        return create(new ObjectiveCConfiguration(), parsingEventListeners);
-    }
+    public static Parser<ObjectiveCGrammar> create(final ObjectiveCConfiguration conf) {
+        final SquidAstVisitorContextImpl<ObjectiveCGrammar> context = new SquidAstVisitorContextImpl<ObjectiveCGrammar>(new SourceProject("ObjectiveC Project"));
+        return create(context, conf);
+      }
 
-    public static Parser<ObjectiveCGrammar> create(ObjectiveCConfiguration conf, ParsingEventListener... parsingEventListeners) {
+    public static Parser<ObjectiveCGrammar> create(final SquidAstVisitorContext<ObjectiveCGrammar> context, final ObjectiveCConfiguration conf) {
+        final ObjectiveCPreprocessor objectivecpp = new ObjectiveCPreprocessor(context, conf);
+        parseEventPropagator = new ObjectiveCParseEventPropagator(objectivecpp, context);
         return Parser.builder((ObjectiveCGrammar) new ObjectiveCGrammarImpl())
-                .withLexer(ObjectiveCLexer.create(conf))
-                .setParsingEventListeners(parsingEventListeners).build();
-    }
+            .withLexer(ObjectiveCLexer.create(conf, objectivecpp))
+            .setParsingEventListeners(parseEventPropagator).build();
+      }
 
+      public static Parser<ObjectiveCGrammar> createDebugParser(final SquidAstVisitorContext<ObjectiveCGrammar> context,
+          final ExtendedStackTrace stackTrace) {
+        final ObjectiveCConfiguration conf = new ObjectiveCConfiguration();
+        final ObjectiveCPreprocessor objectivecpp = new ObjectiveCPreprocessor(context, conf);
+        parseEventPropagator = new ObjectiveCParseEventPropagator(objectivecpp, context);
+        return Parser.builder((ObjectiveCGrammar) new ObjectiveCGrammarImpl())
+            .withLexer(ObjectiveCLexer.create(conf, objectivecpp))
+            .setParsingEventListeners(parseEventPropagator)
+            .setExtendedStackTrace(stackTrace)
+            .build();
+      }
 }
