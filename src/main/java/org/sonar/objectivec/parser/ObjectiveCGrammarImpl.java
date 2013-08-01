@@ -21,6 +21,7 @@ package org.sonar.objectivec.parser;
 
 import static com.sonar.sslr.api.GenericTokenType.EOF;
 import static com.sonar.sslr.api.GenericTokenType.IDENTIFIER;
+import static com.sonar.sslr.impl.matcher.GrammarFunctions.Predicate.not;
 import static com.sonar.sslr.impl.matcher.GrammarFunctions.Standard.and;
 import static com.sonar.sslr.impl.matcher.GrammarFunctions.Standard.o2n;
 import static com.sonar.sslr.impl.matcher.GrammarFunctions.Standard.one2n;
@@ -43,7 +44,9 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
     @SuppressWarnings("deprecation")
     public ObjectiveCGrammarImpl() {
 
-        program.is(o2n(or(categoryInterface, categoryImplementation, protocolDeclaration, classImplementation, classInterface, classDeclarationList, protocolDeclarationList, functionDefinition)), EOF);
+        program.is(opt(programContent), EOF);
+
+        programContent.is(or(typeDeclaration, categoryInterface, categoryImplementation, protocolDeclaration, classImplementation, classInterface, classDeclarationList, protocolDeclarationList, functionDefinition, functionDeclaration), opt(programContent));
 
         identifier.is(IDENTIFIER);
 
@@ -152,7 +155,11 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
                 propertyImplementation
                 ));
 
-        functionDefinition.is(declarationSpecifier, declarator, compoundStatement);
+        functionDefinition.is(functionSignature, compoundStatement);
+
+        functionDeclaration.is(functionSignature, ";");
+
+        functionSignature.is(or(storageClassSpecifier, typeSpecifier, typeQualifier, functionSpecifier), or(declarator, functionSignature));
 
         compoundStatement.is("{", o2n(blockItem), "}");
 
@@ -168,17 +175,22 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
                 ), ";"
         );
 
-        typeDeclaration.is(ObjectiveCKeyword.TYPEDEF, declarationSpecifier, typeDeclarator);
+        typeDeclaration.is(ObjectiveCKeyword.TYPEDEF, typeDeclarationSpecifier, typeDeclaratorList, ";");
+
+        typeDeclarationSpecifier.is(not(and(typeDeclaratorList, ";")), or(storageClassSpecifier, typeSpecifier, typeQualifier, functionSpecifier), opt(typeDeclarationSpecifier));
+
+        typeDeclaratorList.is(typeDeclarator, opt(and(",", typeDeclaratorList)));
 
         typeDeclarator.is(opt(pointer), typeDirectDeclarator);
 
         typeDirectDeclarator.is(or(
-                and("(", typeDeclarator, ")")), o2n(or(
+                    and("(", typeDeclarator, ")"),
+                    identifier),
+                o2n(or(
                         and("[", opt(constantExpression), "]"),
                         and("(", opt(parameterTypeList), ")"),
                         and("(", opt(identifierList), ")")
-                        )),
-                identifier
+                        ))
                 );
 
         statement.is(or(
@@ -209,7 +221,8 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
         iterationStatement.is(or(
                 and(ObjectiveCKeyword.WHILE, "(", expression, ")", statement),
                 and(ObjectiveCKeyword.DO, statement, ObjectiveCKeyword.WHILE, "(", expression, ")", ";"),
-                and(ObjectiveCKeyword.FOR, "(", opt(expression), ";", opt(expression), ";", opt(expression), ")", statement),
+                and(ObjectiveCKeyword.FOR, "(", expression, ";", expression, ";", opt(expression), ")", statement),
+                and(ObjectiveCKeyword.FOR, "(", declaration, expression, ";", opt(expression), ")", statement),
                 and(ObjectiveCKeyword.FOR, "(", forInIterationVariable, ObjectiveCKeyword.IN, expression, ")")
                 ));
 
@@ -282,7 +295,7 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
                 ObjectiveCKeyword.AT_PROTECTED
                 ));
 
-        structDeclarationList.is(one2n(structDeclaration));
+        structDeclarationList.is(structDeclaration, opt(structDeclaration));
 
         structDeclaration.is(or(and(specifierQualifier, structDeclaration), and(structDeclaratorList, ";")));
 
@@ -313,10 +326,10 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
                 and(typedefedIdentifier, opt(protocolReferenceList))
                 ));
 
-        anonymousFunctionDeclarator.is(typeSpecifier, "(", "^", opt(identifier), ")", "(", opt(parameterList), ")");
+        anonymousFunctionDeclarator.is(typeSpecifier, "(", "^", opt(identifier), ")", "(", opt(parameterTypeList), ")");
 
         structOrUnionSpecifier.is(or(
-                and(structOrUnion, opt(GenericTokenType.IDENTIFIER), "{", o2n(structDeclaration)),
+                and(structOrUnion, opt(GenericTokenType.IDENTIFIER), "{", o2n(structDeclaration), "}"),
                 and(structOrUnion, opt(GenericTokenType.IDENTIFIER), "{", ObjectiveCKeyword.AT_DEFS, "(", className, ")", "}"),
                 and(structOrUnion, opt(GenericTokenType.IDENTIFIER))
                 ));
@@ -373,6 +386,15 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
                 and("{", initializerList, ",", "}")
         ));
 
+        initializerList.is(opt(designation), initializer, opt(and(",", initializerList)));
+
+        designation.is(one2n(designator), "=");
+
+        designator.is(or(
+                and("[", constantExpression, "]"),
+                and(".", identifier)
+                ));
+
         declarator.is(opt(pointer), directDeclarator);
 
         directDeclarator.is(or(
@@ -385,14 +407,14 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
                         ))
                 );
 
-        parameterTypeList.is(or(
+        parameterTypeList.is(
                 parameterList,
-                and(parameterList, ",", "...")
-        ));
+                opt(and(",", "..."))
+        );
 
-        parameterList.is(parameterDeclaration, o2n(and(",", parameterDeclaration)));
+        parameterList.is(parameterDeclaration, opt(and(",", parameterList)));
 
-        parameterDeclaration.is(declarationSpecifier, or(declarator, opt(abstractDeclarator)));
+        parameterDeclaration.is(or(storageClassSpecifier, typeSpecifier, typeQualifier, functionSpecifier), or(declarator, parameterDeclaration, opt(abstractDeclarator)));
 
         abstractDeclarator.is(or(
                 and(opt(pointer), directAbstractDeclarator),
@@ -406,7 +428,7 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
                 ))
                 );
 
-        declarationSpecifier.is(o2n(storageClassSpecifier), typeSpecifier, o2n(typeQualifier), o2n(functionSpecifier));
+        declarationSpecifier.is(or(storageClassSpecifier, typeSpecifier, typeQualifier, functionSpecifier), opt(and(not(and(initDeclarator, or(";", ",", ")"))), declarationSpecifier)));
 
         functionSpecifier.is(ObjectiveCKeyword.INLINE);
 
@@ -419,7 +441,7 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
                 and("*", typeQualifierList, pointer)
                 ));
 
-        typeQualifierList.is(typeQualifier, o2n(and(",", typeQualifier)));
+        typeQualifierList.is(typeQualifier, opt(and(",", typeQualifierList)));
 
         protocolReferenceList.is("<", protocolList, ">");
 
@@ -442,6 +464,7 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
                 o2n(and(",", assignmentExpression)
         ));
         assignmentExpression.is(or(
+                and(anonymousFunctionDeclarator, "=", blockExpression),
                 and(unaryExpression, or("=", "+=", "-=", "/=", "*=", "%=", "^=", "<<=", ">>=", "&=", "|="), assignmentExpression),
                 conditionalExpression
         ));
@@ -451,8 +474,8 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
                 and("++", unaryExpression),
                 and("--", unaryExpression),
                 and(ObjectiveCKeyword.SIZEOF, or(
-                        unaryExpression,
-                        and("(", typeSpecifier, ")")
+                        and("(", typeName, ")"),
+                        unaryExpression
                         ))
         ));
         postfixExpression.is(or(
@@ -507,10 +530,12 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
         constant.is(or(
                 ObjectiveCTokenType.NUMERIC_LITERAL,
 //                hexLiteral,
-//                charLiteral,
-                ObjectiveCTokenType.STRING_LITERAL
-//                nsStringLiteral
+                ObjectiveCTokenType.CHARACTER,
+                ObjectiveCTokenType.STRING_LITERAL,
+                nsNumberLiteral
         ));
+
+        nsNumberLiteral.is("@", "(", ObjectiveCTokenType.NUMERIC_LITERAL, ")");
 
         conditionalExpression.is(logicalOrExpression, o2n(and("?", expression, ":", conditionalExpression)));
 

@@ -19,10 +19,16 @@
  */
 package org.sonar.objectivec.parser;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+import java.io.File;
+
 import org.junit.Test;
 import org.sonar.objectivec.ObjectiveCConfiguration;
 import org.sonar.objectivec.api.ObjectiveCGrammar;
 
+import com.sonar.sslr.api.AstNode;
 import com.sonar.sslr.impl.Parser;
 
 public final class ObjetiveCParserTest {
@@ -109,5 +115,38 @@ public final class ObjetiveCParserTest {
         parser.setRootRule(parser.getGrammar().functionDefinition);
         parser.parse("int main(int argc, char *argv[])\n{\n}\n");
 
+    }
+
+    @Test
+    public void parserHandlesStuctTypeDef() {
+        final Parser<ObjectiveCGrammar> parser = ObjectiveCParser
+                .create(new ObjectiveCConfiguration());
+        final AstNode node = parser.parse("typedef struct tagRS_BLOCKINFO {\nint ncDataCodeWord;\nint ncDataCodeWord;\n} RS_BLOCKINFO, *LPRS_BLOCKINFO;");
+        assertThat(node.getNumberOfChildren(), equalTo(2));
+    }
+
+    @Test
+    public void parserHandlesConstTypeDef() {
+        final Parser<ObjectiveCGrammar> parser = ObjectiveCParser
+                .create(new ObjectiveCConfiguration());
+        parser.setRootRule(parser.getGrammar().declarationSpecifier);
+        final AstNode node = parser.parse("const char* LPCTR");
+        assertThat(node.getNumberOfChildren(), equalTo(2));
+    }
+
+    @Test
+    public void parserHandlesFunctionDeclaration() {
+        final Parser<ObjectiveCGrammar> parser = ObjectiveCParser
+                .create(new ObjectiveCConfiguration());
+        parser.setRootRule(parser.getGrammar().functionDeclaration);
+        final AstNode node = parser.parse("int EncodeData(int nLevel, int nVersion , LPCSTR lpsSource, unsigned sourcelen, unsigned char QR_m_data[MAX_BITDATA]);");
+        assertThat(node.getNumberOfChildren(), equalTo(2));
+    }
+
+    @Test
+    public void parserHandlesFile() {
+        final Parser<ObjectiveCGrammar> parser = ObjectiveCParser
+                .create(new ObjectiveCConfiguration());
+        parser.parse(new File("/Users/dbregeon/Development/xcode/pandabear/PebbleQRPayment/PebbleQRPayment/QR_Encode.h"));
     }
 }

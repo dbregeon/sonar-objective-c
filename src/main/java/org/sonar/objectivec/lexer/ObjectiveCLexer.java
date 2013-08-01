@@ -68,6 +68,9 @@ public final class ObjectiveCLexer {
                 // Preprocessor directives
                 .withChannel(new PreprocessorChannel())
 
+                // Character Literals
+                .withChannel(new CharacterLiteralsChannel())
+
                 // String Literals
                 .withChannel(new StringLiteralsChannel())
 

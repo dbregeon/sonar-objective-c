@@ -27,11 +27,13 @@ public class ObjectiveCGrammar extends Grammar {
     public Rule identifierName;
 
     // A.1 Lexical
+    public Rule nsNumberLiteral;
     public Rule arrayLiteral;
     public Rule dictionaryLiteral;
     public Rule dictionaryElement;
 
     public Rule program;
+    public Rule programContent;
 
     public Rule propertyDeclaration;
 
@@ -83,6 +85,8 @@ public class ObjectiveCGrammar extends Grammar {
     public Rule instanceVariables;
     public Rule implementationDefinitionList;
     public Rule functionDefinition;
+    public Rule functionDeclaration;
+    public Rule functionSignature;
     public Rule classMethodDefinition;
     public Rule instanceMethodDefinition;
     public Rule methodDefinition;
@@ -142,6 +146,8 @@ public class ObjectiveCGrammar extends Grammar {
     public Rule typeNameWithUnknowType;
     public Rule specifierQualifierWithUnknownType;
     public Rule typeSpecifierWithUnknownType;
+    public Rule typeDeclarationSpecifier;
+    public Rule typeDeclaratorList;
 
     // Expressions
     public Rule expression;
@@ -175,6 +181,8 @@ public class ObjectiveCGrammar extends Grammar {
 
     // ??
     public Rule initializerList;
+    public Rule designation;
+    public Rule designator;
     public Rule constant;
     public Rule receiver;
     public Rule typedefedIdentifier;

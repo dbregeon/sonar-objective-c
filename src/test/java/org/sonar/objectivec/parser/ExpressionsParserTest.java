@@ -100,9 +100,30 @@ public final class ExpressionsParserTest {
     @Test
     public void parsingHandlesBlockInstances() {
         givenAParserForExpressions();
+        parser.setRootRule(parser.getGrammar().expression);
         final AstNode node = parser().parse("^(BOOL granted, NSError *error) {\n}\n");
 
         assertThat(node.getNumberOfChildren(), equalTo(1));
+    }
+
+    @Test
+    public void parsingHandlesParameterDeclarationForNonPointer() {
+        givenAParserForExpressions();
+        parser.setRootRule(parser.getGrammar().parameterDeclaration);
+        final AstNode node = parser().parse("BOOL granted");
+
+        assertThat(node.getNumberOfChildren(), equalTo(2));
+        assertThat(node.getChild(0).getTokenValue(), equalTo("BOOL"));
+        assertThat(node.getChild(1).getTokenValue(), equalTo("granted"));
+    }
+
+    @Test
+    public void parsingHandlesSizeof() {
+        givenAParserForUnaryExpressions();
+        final AstNode node = parser().parse("sizeof(unsigned char)");
+
+        assertThat(node.getNumberOfChildren(), equalTo(4));
+        assertThat(node.getTokens().size(), equalTo(6));
     }
 
     @Test
@@ -149,6 +170,13 @@ public final class ExpressionsParserTest {
         parser = ObjectiveCParser
                 .create(new ObjectiveCConfiguration());
         parser.setRootRule(parser.getGrammar().assignmentExpression);
+        return parser;
+    }
+
+    private Parser<ObjectiveCGrammar> givenAParserForUnaryExpressions() {
+        parser = ObjectiveCParser
+                .create(new ObjectiveCConfiguration());
+        parser.setRootRule(parser.getGrammar().unaryExpression);
         return parser;
     }
 

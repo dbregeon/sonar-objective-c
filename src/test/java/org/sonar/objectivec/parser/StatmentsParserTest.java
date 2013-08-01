@@ -117,6 +117,13 @@ public final class StatmentsParserTest {
         assertThat(node.getNumberOfChildren(), equalTo(1));
     }
 
+    @Test
+    public void parserHandlesForLoop() {
+        givenAParserForStatement();
+        final AstNode node = parser().parse("for (int i = 0; i < len; i++) {\n}");
+        assertThat(node.getNumberOfChildren(), equalTo(1));
+    }
+
     private Parser<ObjectiveCGrammar> givenAParserForStatement() {
         parser = ObjectiveCParser
                 .create(new ObjectiveCConfiguration());
