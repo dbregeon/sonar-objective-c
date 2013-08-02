@@ -159,6 +159,15 @@ public final class ExpressionsParserTest {
         assertThat(node.getNumberOfChildren(), equalTo(6));
     }
 
+    @Test
+    public void parsingHandlesAssignmentWithCastExpression() {
+        givenAParserForAssignmentExpressions();
+        final AstNode node = parser().parse("splitViewController.delegate = (id)navigationController.topViewController");
+
+        assertThat(node.getNumberOfChildren(), equalTo(3));
+        assertThat(node.getTokens().size(), equalTo(11));
+    }
+
     private Parser<ObjectiveCGrammar> givenAParserForExpressions() {
         parser = ObjectiveCParser
                 .create(new ObjectiveCConfiguration());

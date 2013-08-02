@@ -582,8 +582,8 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
                 )));
 
         castExpression.is(or(
-                unaryExpression,
-                and("(", typeName, ")", castExpression)
+                and("(", typeName, ")", castExpression),
+                unaryExpression
                 ));
 
         messageSelector.is(GenericTokenType.IDENTIFIER,
