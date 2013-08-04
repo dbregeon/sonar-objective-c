@@ -124,6 +124,13 @@ public final class StatmentsParserTest {
         assertThat(node.getNumberOfChildren(), equalTo(1));
     }
 
+    @Test
+    public void parserHandlesThrow() {
+        givenAParserForStatement();
+        final AstNode node = parser().parse("@throw [NSException exceptionWithName:NSInternalInconsistencyException\nreason:[NSString stringWithFormat:@\"You must override %@ in a subclass\", NSStringFromSelector(_cmd)]\nuserInfo:nil];");
+        assertThat(node.getNumberOfChildren(), equalTo(1));
+    }
+
     private Parser<ObjectiveCGrammar> givenAParserForStatement() {
         parser = ObjectiveCParser
                 .create(new ObjectiveCConfiguration());

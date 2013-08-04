@@ -27,15 +27,21 @@ import org.sonar.objectivec.api.ObjectiveCKeyword;
 import org.sonar.objectivec.api.ObjectiveCMetric;
 import org.sonar.objectivec.api.ObjectiveCPunctuator;
 import org.sonar.objectivec.parser.ObjectiveCParser;
+import org.sonar.squid.api.SourceClass;
 import org.sonar.squid.api.SourceCode;
 import org.sonar.squid.api.SourceFile;
+import org.sonar.squid.api.SourceFunction;
 import org.sonar.squid.api.SourceProject;
 import org.sonar.squid.indexer.QueryByType;
 
+import com.sonar.sslr.api.AstNode;
 import com.sonar.sslr.api.AstNodeType;
 import com.sonar.sslr.api.CommentAnalyser;
+import com.sonar.sslr.api.Token;
 import com.sonar.sslr.impl.Parser;
 import com.sonar.sslr.squid.AstScanner;
+import com.sonar.sslr.squid.SourceCodeBuilderCallback;
+import com.sonar.sslr.squid.SourceCodeBuilderVisitor;
 import com.sonar.sslr.squid.SquidAstVisitor;
 import com.sonar.sslr.squid.SquidAstVisitorContextImpl;
 import com.sonar.sslr.squid.metrics.CommentsVisitor;
@@ -74,6 +80,8 @@ public class ObjectiveCAstScanner {
         final AstNodeType[] complexityAstNodeType = new AstNodeType[] {
                 // Entry points
                 parser.getGrammar().methodDefinition,
+                parser.getGrammar().functionDefinition,
+                parser.getGrammar().blockExpression,
 
                 ObjectiveCKeyword.IF,
                 ObjectiveCKeyword.FOR,
@@ -86,6 +94,31 @@ public class ObjectiveCAstScanner {
                 ObjectiveCPunctuator.OR,
                 ObjectiveCPunctuator.NOT
               };
+
+        /* Functions */
+        builder.withSquidAstVisitor(new SourceCodeBuilderVisitor<ObjectiveCGrammar>(new SourceCodeBuilderCallback() {
+          public SourceCode createSourceCode(final SourceCode parentSourceCode, final AstNode astNode) {
+            final StringBuilder sb = new StringBuilder();
+            for (final Token token : astNode.findFirstChild(parser.getGrammar().methodSelector).getTokens()) {
+              sb.append(token.getValue());
+            }
+            final String functionName = sb.toString();
+            final SourceFunction function = new SourceFunction(functionName + ":" + astNode.getToken().getLine());
+            function.setStartAtLine(astNode.getTokenLine());
+            return function;
+          }
+        }, parser.getGrammar().methodDefinition));
+
+        /* Classes */
+        builder.withSquidAstVisitor(new SourceCodeBuilderVisitor<ObjectiveCGrammar>(new SourceCodeBuilderCallback() {
+          public SourceCode createSourceCode(final SourceCode parentSourceCode, final AstNode astNode) {
+            final AstNode classNameAst = astNode.findFirstChild(parser.getGrammar().className);
+            final String className = classNameAst == null ? "" : classNameAst.getChild(0).getTokenValue();
+            final SourceClass cls = new SourceClass(className + ":" + astNode.getToken().getLine(), className);
+            cls.setStartAtLine(astNode.getTokenLine());
+            return cls;
+          }
+        }, parser.getGrammar().classImplementation));
 
         /* Metrics */
         builder.withMetrics(ObjectiveCMetric.values());

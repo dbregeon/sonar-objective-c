@@ -22,6 +22,7 @@ package org.sonar.plugins.objectivec;
 import java.util.Collection;
 import java.util.Locale;
 
+import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.Sensor;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.checks.AnnotationCheckFactory;
@@ -135,7 +136,10 @@ public class ObjectiveCSquidSensor implements Sensor {
         final RangeDistributionBuilder complexityDistribution = new RangeDistributionBuilder(
                 CoreMetrics.FUNCTION_COMPLEXITY_DISTRIBUTION,
                 FUNCTIONS_DISTRIB_BOTTOM_LIMITS);
+        LoggerFactory.getLogger(getClass()).info("For file " + sonarFile + ":");
         for (final SourceCode squidFunction : squidFunctionsInFile) {
+            LoggerFactory.getLogger(getClass()).info("Complexity of " + squidFunction.getName() + " is " + squidFunction
+                    .getDouble(ObjectiveCMetric.COMPLEXITY));
             complexityDistribution.add(squidFunction
                     .getDouble(ObjectiveCMetric.COMPLEXITY));
         }

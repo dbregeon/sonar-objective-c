@@ -142,11 +142,41 @@ public final class ObjetiveCParserTest {
         final AstNode node = parser.parse("int EncodeData(int nLevel, int nVersion , LPCSTR lpsSource, unsigned sourcelen, unsigned char QR_m_data[MAX_BITDATA]);");
         assertThat(node.getNumberOfChildren(), equalTo(2));
     }
+    @Test
+    public void parserHandlesStaticFunctionDeclaration() {
+        final Parser<ObjectiveCGrammar> parser = ObjectiveCParser
+                .create(new ObjectiveCConfiguration());
+        parser.setRootRule(parser.getGrammar().functionDeclaration);
+        final AstNode node = parser.parse("static NSManagedObjectModel *managedObjectModel();");
+        assertThat(node.getNumberOfChildren(), equalTo(2));
+    }
 
     @Test
     public void parserHandlesFile() {
         final Parser<ObjectiveCGrammar> parser = ObjectiveCParser
                 .create(new ObjectiveCConfiguration());
         parser.parse(new File("/Users/dbregeon/Development/xcode/pandabear/PebbleQRPayment/PebbleQRPayment/QR_Encode.h"));
+    }
+
+    @Test
+    public void parserHandlesMethodDeclarationWithPointerOfPointer() {
+        final Parser<ObjectiveCGrammar> parser = ObjectiveCParser
+                .create(new ObjectiveCConfiguration());
+        parser.setRootRule(parser.getGrammar().methodDeclaration);
+        parser.parse("- (ZXResult *)decode:(ZXBinaryBitmap *)image error:(NSError **)error;");
+    }
+
+    @Test
+    public void parserHandlesConstDeclaration() {
+        final Parser<ObjectiveCGrammar> parser = ObjectiveCParser
+                .create(new ObjectiveCConfiguration());
+        parser.parse("int const FORMAT_INFO_MASK_QR = 0x5412;");
+    }
+
+    @Test
+    public void parserHandlesEnumDeclaration() {
+        final Parser<ObjectiveCGrammar> parser = ObjectiveCParser
+                .create(new ObjectiveCConfiguration());
+        parser.parse("typedef enum {\nUPPER = 0,\nLOWER\n} RSS_PATTERNS;");
     }
 }

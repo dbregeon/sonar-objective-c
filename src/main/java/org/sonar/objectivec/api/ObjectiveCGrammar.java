@@ -23,9 +23,6 @@ import com.sonar.sslr.api.Grammar;
 import com.sonar.sslr.api.Rule;
 
 public class ObjectiveCGrammar extends Grammar {
-
-    public Rule identifierName;
-
     // A.1 Lexical
     public Rule nsNumberLiteral;
     public Rule arrayLiteral;
@@ -39,7 +36,6 @@ public class ObjectiveCGrammar extends Grammar {
 
     public Rule methodDeclaration;
     public Rule methodType;
-    public Rule identifier;
     public Rule compoundStatement;
     public Rule statement;
     public Rule typeName;
@@ -55,6 +51,7 @@ public class ObjectiveCGrammar extends Grammar {
     public Rule tryBlock;
     public Rule catchClause;
     public Rule finallyStatement;
+    public Rule throwStatement;
 
     // Category
     public Rule categoryInterface;

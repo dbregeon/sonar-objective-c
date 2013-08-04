@@ -22,7 +22,6 @@ package org.sonar.objectivec.lexer;
 import static com.sonar.sslr.impl.channel.RegexpChannelBuilder.and;
 import static com.sonar.sslr.impl.channel.RegexpChannelBuilder.commentRegexp;
 import static com.sonar.sslr.impl.channel.RegexpChannelBuilder.o2n;
-import static com.sonar.sslr.impl.channel.RegexpChannelBuilder.one2n;
 import static com.sonar.sslr.impl.channel.RegexpChannelBuilder.opt;
 import static com.sonar.sslr.impl.channel.RegexpChannelBuilder.or;
 import static com.sonar.sslr.impl.channel.RegexpChannelBuilder.regexp;
@@ -75,7 +74,7 @@ public final class ObjectiveCLexer {
                 .withChannel(new StringLiteralsChannel())
 
                 // ObjectiveC Tokens
-                .withChannel(new IdentifierAndKeywordChannel(or(and("[a-zA-Z_]", o2n("\\w")), and("@", one2n("\\w"))), true, ObjectiveCKeyword.values()))
+                .withChannel(new IdentifierAndKeywordChannel(or(and("[a-zA-Z_]", o2n("\\w")), and("@", "[a-zA-Z_]", o2n("\\w"))), true, ObjectiveCKeyword.values()))
                 .withChannel(new PunctuatorChannel(ObjectiveCPunctuator.values()))
 
                 .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "[0-9]++\\.[0-9]*+" + opt(EXP) + opt(FLOAT_SUFFIX)))

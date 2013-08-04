@@ -59,19 +59,6 @@ public enum ObjectiveCKeyword implements TokenType {
     AT_ENCODE("@encode"), // return char encoding of a type
     AT_COMPATIBILITY_ALIAS("@compatibility_alias"),
 
-    // retain is defined in property modifiers
-    // property modifiers
-
-    READWRITE("readwrite"),
-    READONLY("readonly"),
-    ASSIGN("assign"),
-    RETAIN("retain"),
-    COPY("copy"),
-    ATOMIC("atomic"),
-    NONATOMIC("nonatomic"),
-    STRONG("strong"),
-    WEAK("weak"),
-
     // preprocessor directives
 
     HASH_IMPORT("#import"),
@@ -119,14 +106,6 @@ public enum ObjectiveCKeyword implements TokenType {
     VOID("void"),
     VOLATILE("volatile"),
     WHILE("while"),
-
-    // obj-c specific
-
-//    SUPER("super"),
-//    SELF("self"),
-//    NIL("nil"),
-//    YES("YES"),
-//    NO("NO"),
 
     // exception handling
 
