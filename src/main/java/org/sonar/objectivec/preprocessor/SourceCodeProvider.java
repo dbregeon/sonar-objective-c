@@ -20,12 +20,16 @@
 package org.sonar.objectivec.preprocessor;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.objectivec.ObjectiveCConfiguration;
 
 /**
  * The source code provider is responsible for locating source files and getting
@@ -35,12 +39,18 @@ import org.slf4j.LoggerFactory;
  */
 public final class SourceCodeProvider {
     private final List<File> includeRoots = new LinkedList<File>();
+    private final File baseDir;
     public static final Logger LOG = LoggerFactory
             .getLogger("SourceCodeProvider");
 
-    public void setIncludeRoots(final List<String> includeRoots,
-            final String baseDir) {
-        for (final String tmp : includeRoots) {
+    public SourceCodeProvider(final ObjectiveCConfiguration conf) {
+        baseDir = new File(conf.getBaseDir());
+        setIncludeRoots(conf.getIncludeDirectories());
+
+    }
+
+    private void setIncludeRoots(final List<String> roots) {
+        for (final String tmp : roots) {
 
             File includeRoot = new File(tmp);
             if (!includeRoot.isAbsolute()) {
@@ -63,8 +73,7 @@ public final class SourceCodeProvider {
         }
     }
 
-    public File getSourceCodeFile(final String filename, final String cwd,
-            final boolean quoted) {
+    public File getSourceCodeFile(final String filename, final boolean quoted) {
         File result = null;
         final File file = new File(filename);
         if (file.isAbsolute()) {
@@ -77,9 +86,24 @@ public final class SourceCodeProvider {
             // the
             // current directory.
             if (quoted) {
-                final File abspath = new File(new File(cwd), file.getPath());
-                if (abspath.isFile()) {
-                    result = abspath;
+                final List<File> directories = new ArrayList<File>();
+                final FileFilter directoryFilter = new FileFilter() {
+                    public boolean accept(final File f) {
+                        return f.isDirectory();
+                    }
+                };
+                directories.add(baseDir);
+                while (null == result && !directories.isEmpty()) {
+                    final File currentParent = directories.remove(0);
+                    final File abspath = new File(currentParent, file.getPath());
+                    if (abspath.isFile()) {
+                        result = abspath;
+                    } else {
+                        final File[] subDirectories = currentParent.listFiles(directoryFilter);
+                        if (null != subDirectories) {
+                            directories.addAll(Arrays.asList(subDirectories));
+                        }
+                    }
                 }
             }
 
@@ -88,7 +112,7 @@ public final class SourceCodeProvider {
             // successul (as forced by the Standard).
             if (result == null) {
                 for (final File folder : includeRoots) {
-                    final File abspath = new File(folder.getPath(), filename);
+                    final File abspath = new File(folder.getAbsolutePath(), filename);
                     if (abspath.isFile()) {
                         result = abspath;
                         break;

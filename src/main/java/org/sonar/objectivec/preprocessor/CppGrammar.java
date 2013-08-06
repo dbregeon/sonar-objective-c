@@ -36,6 +36,7 @@ import static org.sonar.objectivec.preprocessor.CppKeyword.ERROR;
 import static org.sonar.objectivec.preprocessor.CppKeyword.IF;
 import static org.sonar.objectivec.preprocessor.CppKeyword.IFDEF;
 import static org.sonar.objectivec.preprocessor.CppKeyword.IFNDEF;
+import static org.sonar.objectivec.preprocessor.CppKeyword.IMPORT;
 import static org.sonar.objectivec.preprocessor.CppKeyword.INCLUDE;
 import static org.sonar.objectivec.preprocessor.CppKeyword.INCLUDE_NEXT;
 import static org.sonar.objectivec.preprocessor.CppKeyword.LINE;
@@ -60,6 +61,9 @@ public class CppGrammar extends Grammar {
     public Rule includeLine;
     public Rule includeBody;
     public Rule expandedIncludeBody;
+    public Rule importLine;
+    public Rule importBody;
+    public Rule expandedImportBody;
     public Rule ifdefLine;
     public Rule replacementList;
     public Rule argumentList;
@@ -109,6 +113,7 @@ public class CppGrammar extends Grammar {
         toplevelDefinitionGrammar();
         defineLineGrammar();
         includeLineGrammar();
+        importLineGrammar();
         ifLineGrammar();
         allTheOtherLinesGrammar();
 
@@ -116,11 +121,12 @@ public class CppGrammar extends Grammar {
     }
 
     private void toplevelDefinitionGrammar() {
-        preprocessorLine.is(or(defineLine, includeLine, ifdefLine, ifLine,
+        preprocessorLine.is(or(defineLine, includeLine, importLine, ifdefLine, ifLine,
                 elifLine, elseLine, endifLine, undefLine, lineLine, errorLine,
                 pragmaLine, warningLine, miscLine));
     }
 
+    @SuppressWarnings("deprecation")
     private void defineLineGrammar() {
         defineLine
                 .is(or(functionlikeMacroDefinition, objectlikeMacroDefinition));
@@ -161,14 +167,24 @@ public class CppGrammar extends Grammar {
         ppToken.is(anyToken());
     }
 
+    @SuppressWarnings("deprecation")
     private void includeLineGrammar() {
         includeLine
                 .is(or(INCLUDE, INCLUDE_NEXT), o2n(WS), includeBody, o2n(WS));
         includeBody.is(or(expandedIncludeBody, one2n(ppToken)));
         expandedIncludeBody.is(or(and("<", one2n(not(">"), ppToken), ">"),
-                ObjectiveCTokenType.STRING));
+                CppTokenType.STRING));
     }
 
+    @SuppressWarnings("deprecation")
+    private void importLineGrammar() {
+        importLine
+                .is(IMPORT, o2n(WS), importBody, o2n(WS));
+        importBody.is(or(expandedIncludeBody, CppTokenType.STRING));
+        expandedImportBody.is("<", one2n(not(">"), ppToken), ">");
+    }
+
+    @SuppressWarnings("deprecation")
     private void allTheOtherLinesGrammar() {
         ifdefLine.is(or(IFDEF, IFNDEF), one2n(WS), IDENTIFIER, o2n(WS));
         elseLine.is(ELSE, o2n(WS));
@@ -244,7 +260,7 @@ public class CppGrammar extends Grammar {
                 .skipIfOneChild();
 
         literal.is(or(ObjectiveCTokenType.CHARACTER,
-                ObjectiveCTokenType.STRING,
+                CppTokenType.STRING,
                 ObjectiveCTokenType.NUMERIC_LITERAL, bool));
 
         bool.is(or("true", "false"));

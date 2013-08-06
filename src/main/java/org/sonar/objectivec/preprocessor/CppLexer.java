@@ -28,7 +28,6 @@ import static com.sonar.sslr.impl.channel.RegexpChannelBuilder.regexp;
 
 import org.sonar.objectivec.ObjectiveCConfiguration;
 import org.sonar.objectivec.api.ObjectiveCTokenType;
-import org.sonar.objectivec.lexer.StringLiteralsChannel;
 
 import com.sonar.sslr.impl.Lexer;
 import com.sonar.sslr.impl.channel.IdentifierAndKeywordChannel;

@@ -79,8 +79,10 @@ public final class StringLiteralsChannel extends Channel<Lexer> {
     private void readStringPrefix(final CodeReader code) {
         ch = code.charAt(index);
         if (ch == '@') {
-            index++;
-            ch = code.charAt(index);
+             do {
+                index++;
+                ch = code.charAt(index);
+            } while (ch == ' ');
         }
     }
 }

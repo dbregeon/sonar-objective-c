@@ -75,16 +75,17 @@ public final class ObjectiveCLexer {
 
                 // ObjectiveC Tokens
                 .withChannel(new IdentifierAndKeywordChannel(or(and("[a-zA-Z_]", o2n("\\w")), and("@", "[a-zA-Z_]", o2n("\\w"))), true, ObjectiveCKeyword.values()))
-                .withChannel(new PunctuatorChannel(ObjectiveCPunctuator.values()))
 
-                .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "[0-9]++\\.[0-9]*+" + opt(EXP) + opt(FLOAT_SUFFIX)))
-                .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "\\.[0-9]++" + opt(EXP) + opt(FLOAT_SUFFIX)))
-                .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "[0-9]++" + EXP + opt(FLOAT_SUFFIX)))
+                .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "[0-9]+[.][0-9]*" + opt(EXP) + opt(FLOAT_SUFFIX)))
+                .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "[.][0-9]+" + opt(EXP) + opt(FLOAT_SUFFIX)))
+                .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "[0-9]+" + EXP + opt(FLOAT_SUFFIX)))
 
-                .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "[1-9][0-9]*+" + opt(INTEGER_SUFFIX))) // Decimal literals
+                .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "[1-9][0-9]*" + opt(INTEGER_SUFFIX))) // Decimal literals
                 .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "0[0-7]++" + opt(INTEGER_SUFFIX))) // Octal Literals
-                .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "0[xX][0-9a-fA-F]++" + opt(INTEGER_SUFFIX))) // Hex Literals
+                .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "0[xX][0-9a-fA-F]+" + opt(INTEGER_SUFFIX))) // Hex Literals
                 .withChannel(regexp(ObjectiveCTokenType.NUMERIC_LITERAL, "0" + opt(INTEGER_SUFFIX))) // Decimal zero
+
+                .withChannel(new PunctuatorChannel(ObjectiveCPunctuator.values()))
 
                 // All other tokens
 //                .withChannel(regexp(LITERAL, "[^\r\n\\s/]+"))

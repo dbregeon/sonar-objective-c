@@ -23,13 +23,12 @@ import static com.sonar.sslr.api.GenericTokenType.EOF;
 import static com.sonar.sslr.api.GenericTokenType.IDENTIFIER;
 import static org.sonar.objectivec.api.ObjectiveCTokenType.NUMERIC_LITERAL;
 import static org.sonar.objectivec.api.ObjectiveCTokenType.PREPROCESSOR;
-import static org.sonar.objectivec.api.ObjectiveCTokenType.STRING;
 import static org.sonar.objectivec.api.ObjectiveCTokenType.WS;
 import static org.sonar.objectivec.preprocessor.CppKeyword.IFDEF;
 import static org.sonar.objectivec.preprocessor.CppKeyword.IFNDEF;
-import static org.sonar.objectivec.preprocessor.CppKeyword.IMPORT;
 import static org.sonar.objectivec.preprocessor.CppKeyword.INCLUDE;
 import static org.sonar.objectivec.preprocessor.CppPunctuator.LT;
+import static org.sonar.objectivec.preprocessor.CppTokenType.STRING;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -115,7 +114,7 @@ public final class ObjectiveCPreprocessor extends Preprocessor {
     private Parser<CppGrammar> includeBodyParser = null;
     private final MapChain<String, Macro> macros = new MapChain<String, Macro>();
     private final Set<File> analysedFiles = new HashSet<File>();
-    private SourceCodeProvider codeProvider = new SourceCodeProvider();
+    private final SourceCodeProvider codeProvider;
     private final SquidAstVisitorContext<ObjectiveCGrammar> context;
     private final ExpressionEvaluator ifExprEvaluator;
 
@@ -131,19 +130,10 @@ public final class ObjectiveCPreprocessor extends Preprocessor {
     public ObjectiveCPreprocessor(
             final SquidAstVisitorContext<ObjectiveCGrammar> context,
             final ObjectiveCConfiguration conf) {
-        this(context, conf, new SourceCodeProvider());
-    }
-
-    public ObjectiveCPreprocessor(
-            final SquidAstVisitorContext<ObjectiveCGrammar> context,
-            final ObjectiveCConfiguration conf,
-            final SourceCodeProvider sourceCodeProvider) {
         this.context = context;
         this.ifExprEvaluator = new ExpressionEvaluator(conf, this);
 
-        codeProvider = sourceCodeProvider;
-        codeProvider.setIncludeRoots(conf.getIncludeDirectories(),
-                conf.getBaseDir());
+        codeProvider = new SourceCodeProvider(conf);
 
         pplineParser = CppParser.create(conf);
         includeBodyParser = CppParser.createExpandedIncludeBodyParser(conf);
@@ -475,24 +465,9 @@ public final class ObjectiveCPreprocessor extends Preprocessor {
         // if it finds relevant preprocessor directives (currently: include's
         // and define's)
 
-        final String includeBody = serialize(stripEOF(ast
-                .findFirstChild(IMPORT).nextSibling().getTokens()), "");
-        final String expandedIncludeBody = serialize(stripEOF(ObjectiveCLexer
-                .create(this).lex(includeBody)), "");
-        System.out
-                .println("!!!putting into the parser: " + expandedIncludeBody);
 
-        AstNode includeBodyAst = null;
-        try {
-            includeBodyAst = includeBodyParser.parse(expandedIncludeBody);
-        } catch (final com.sonar.sslr.api.RecognitionException re) {
-            LOG.warn("[{}:{}]: cannot parse included filename: {}'",
-                    new Object[] { filename, token.getLine(),
-                            expandedIncludeBody });
-        }
-
-        if (includeBodyAst != null) {
-            final File includedFile = findIncludedFile(includeBodyAst);
+        if (ast != null) {
+            final File includedFile = findIncludedFile(ast);
             if (includedFile == null) {
                 LOG.warn(
                         "[{}:{}]: cannot find the sources for '{}'",
@@ -893,10 +868,7 @@ public final class ObjectiveCPreprocessor extends Preprocessor {
         }
 
         if (fileName != null) {
-            final File file = getFileUnderAnalysis();
-            final String dir = file == null ? "" : file.getParent();
-            includedFile = codeProvider
-                    .getSourceCodeFile(fileName, dir, quoted);
+            includedFile = codeProvider.getSourceCodeFile(fileName, quoted);
         }
 
         return includedFile;

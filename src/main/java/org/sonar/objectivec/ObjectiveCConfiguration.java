@@ -21,7 +21,6 @@ package org.sonar.objectivec;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.sonar.squid.api.SquidConfiguration;
@@ -30,7 +29,7 @@ public class ObjectiveCConfiguration extends SquidConfiguration {
 
     private boolean ignoreHeaderComments;
     private List<String> includeDirectories = new ArrayList<String>();
-    private String baseDir;
+    private String baseDir = ".";
 
     public ObjectiveCConfiguration() {
     }
@@ -49,12 +48,6 @@ public class ObjectiveCConfiguration extends SquidConfiguration {
 
     public void setIncludeDirectories(final List<String> directories) {
         includeDirectories = directories;
-      }
-
-      public void setIncludeDirectories(final String[] includeDirectories) {
-        if (includeDirectories != null) {
-          setIncludeDirectories(Arrays.asList(includeDirectories));
-        }
       }
 
       public List<String> getIncludeDirectories() {

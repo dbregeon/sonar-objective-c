@@ -120,6 +120,14 @@ public final class ObjectiveCLexerTest {
     }
 
     @Test
+    public void lexNumericLiteral() {
+        final List<Token> tokens = lexer.lex(".1f");
+        assertThat(tokens.size(), equalTo(2));
+        assertThat(tokens, hasToken(".1f", ObjectiveCTokenType.NUMERIC_LITERAL));
+        assertThat(tokens, hasToken(GenericTokenType.EOF));
+    }
+
+    @Test
     public void lexLocalVariableAssignment() {
         final List<Token> tokens = lexer.lex("NSString * test = toto;");
         assertThat(tokens.size(), equalTo(7));

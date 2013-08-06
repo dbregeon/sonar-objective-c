@@ -22,7 +22,7 @@ package org.sonar.plugins.objectivec;
 import java.util.Collection;
 import java.util.Locale;
 
-import org.slf4j.LoggerFactory;
+import org.apache.commons.configuration.Configuration;
 import org.sonar.api.batch.Sensor;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.checks.AnnotationCheckFactory;
@@ -62,10 +62,12 @@ public class ObjectiveCSquidSensor implements Sensor {
     private Project project;
     private SensorContext context;
     private AstScanner<ObjectiveCGrammar> scanner;
+    private final Configuration configuration;
 
-    public ObjectiveCSquidSensor(final RulesProfile profile) {
+    public ObjectiveCSquidSensor(final RulesProfile profile, final Configuration config) {
         this.annotationCheckFactory = AnnotationCheckFactory.create(profile,
                 CheckList.REPOSITORY_KEY, CheckList.getChecks());
+        configuration = config;
     }
 
     public boolean shouldExecuteOnProject(final Project project) {
@@ -78,7 +80,7 @@ public class ObjectiveCSquidSensor implements Sensor {
 
         final Collection<SquidCheck> squidChecks = annotationCheckFactory.getChecks();
         this.scanner = ObjectiveCAstScanner.create(
-                createConfiguration(project),
+                createConfiguration(project, configuration),
                 squidChecks.toArray(new SquidCheck[squidChecks.size()]));
         scanner.scanFiles(InputFileUtils.toFiles(project.getFileSystem()
                 .mainFiles(ObjectiveC.KEY)));
@@ -88,9 +90,12 @@ public class ObjectiveCSquidSensor implements Sensor {
         save(squidSourceFiles);
     }
 
-    private ObjectiveCConfiguration createConfiguration(final Project project) {
-        return new ObjectiveCConfiguration(project.getFileSystem()
+    private ObjectiveCConfiguration createConfiguration(final Project project, final Configuration conf) {
+        final ObjectiveCConfiguration result =  new ObjectiveCConfiguration(project.getFileSystem()
                 .getSourceCharset());
+        result.setBaseDir(project.getFileSystem().getBasedir().getAbsolutePath());
+        result.setIncludeDirectories(conf.getList(ObjectiveCPlugin.INCLUDE_DIRECTORIES_KEY));
+        return result;
     }
 
     private void save(final Collection<SourceCode> squidSourceFiles) {
@@ -136,10 +141,7 @@ public class ObjectiveCSquidSensor implements Sensor {
         final RangeDistributionBuilder complexityDistribution = new RangeDistributionBuilder(
                 CoreMetrics.FUNCTION_COMPLEXITY_DISTRIBUTION,
                 FUNCTIONS_DISTRIB_BOTTOM_LIMITS);
-        LoggerFactory.getLogger(getClass()).info("For file " + sonarFile + ":");
         for (final SourceCode squidFunction : squidFunctionsInFile) {
-            LoggerFactory.getLogger(getClass()).info("Complexity of " + squidFunction.getName() + " is " + squidFunction
-                    .getDouble(ObjectiveCMetric.COMPLEXITY));
             complexityDistribution.add(squidFunction
                     .getDouble(ObjectiveCMetric.COMPLEXITY));
         }

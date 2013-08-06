@@ -101,9 +101,6 @@ public enum CppPunctuator implements TokenType {
   MOD_COLON("%:"),
   MOD_COLON_MOD_COLON("%:%:"),
 
-  NEW("new"),
-  DELETE("delete"),
-
   // Aliases
   AL_AND("and"),
   AL_AND_EQ("and_eq"),

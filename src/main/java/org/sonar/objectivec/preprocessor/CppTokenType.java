@@ -17,18 +17,13 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package org.sonar.objectivec.api;
+package org.sonar.objectivec.preprocessor;
 
 import com.sonar.sslr.api.AstNode;
 import com.sonar.sslr.api.TokenType;
 
-public enum ObjectiveCTokenType implements TokenType {
-
-    PREPROCESSOR,
-    NUMERIC_LITERAL,
-    STRING_LITERAL,
-    CHARACTER,
-    WS;
+public enum CppTokenType  implements TokenType {
+    STRING;
 
     public String getName() {
         return name();
@@ -39,7 +34,7 @@ public enum ObjectiveCTokenType implements TokenType {
     }
 
     public boolean hasToBeSkippedFromAst(final AstNode node) {
-        return this == WS;
+        return false;
     }
 
 }

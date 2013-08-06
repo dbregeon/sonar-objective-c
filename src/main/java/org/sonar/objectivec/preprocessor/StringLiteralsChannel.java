@@ -21,75 +21,77 @@ package org.sonar.objectivec.preprocessor;
 
 import org.sonar.channel.Channel;
 import org.sonar.channel.CodeReader;
-import org.sonar.objectivec.api.ObjectiveCTokenType;
 
 import com.sonar.sslr.api.Token;
 import com.sonar.sslr.impl.Lexer;
 
 /**
   */
-public final class StringLiteralsChannel extends Channel<Lexer> {
+public class StringLiteralsChannel extends Channel<Lexer> {
 
-    private static final char EOF = (char) -1;
+  private static final char EOF = (char) -1;
 
-    private final StringBuilder sb = new StringBuilder();
+  private final StringBuilder sb = new StringBuilder();
 
-    private int index;
-    private char ch;
+  private int index;
+  private char ch;
 
-    @Override
-    public boolean consume(final CodeReader code, final Lexer output) {
-        final int line = code.getLinePosition();
-        final int column = code.getColumnPosition();
-        index = 0;
-        readStringPrefix(code);
-        if ((ch != '\"')) {
-            return false;
-        }
-        if (!read(code)) {
-            return false;
-        }
-        for (int i = 0; i < index; i++) {
-            sb.append((char) code.pop());
-        }
-        output.addToken(Token.builder().setLine(line).setColumn(column)
-                .setURI(output.getURI())
-                .setValueAndOriginalValue(sb.toString())
-                .setType(ObjectiveCTokenType.STRING).build());
-        sb.setLength(0);
-        return true;
+  @Override
+  public boolean consume(final CodeReader code, final Lexer output) {
+    final int line = code.getLinePosition();
+    final int column = code.getColumnPosition();
+    index = 0;
+    readStringPrefix(code);
+    if ((ch != '\"')) {
+      return false;
     }
+    if (!read(code)) {
+      return false;
+    }
+    for (int i = 0; i < index; i++) {
+      sb.append((char) code.pop());
+    }
+    output.addToken(Token.builder()
+        .setLine(line)
+        .setColumn(column)
+        .setURI(output.getURI())
+        .setValueAndOriginalValue(sb.toString())
+        .setType(CppTokenType.STRING)
+        .build());
+    sb.setLength(0);
+    return true;
+  }
 
-    private boolean read(final CodeReader code) {
-        // TODO: proper reading raw strings.
+  private boolean read(final CodeReader code) {
+    // TODO: proper reading raw strings.
 
+    index++;
+    while (code.charAt(index) != ch) {
+      if (code.charAt(index) == EOF) {
+        return false;
+      }
+      if (code.charAt(index) == '\\') {
+        // escape
         index++;
-        while (code.charAt(index) != ch) {
-            if (code.charAt(index) == EOF) {
-                return false;
-            }
-            if (code.charAt(index) == '\\') {
-                // escape
-                index++;
-            }
-            index++;
-        }
-        index++;
-        return true;
+      }
+      index++;
     }
+    index++;
+    return true;
+  }
 
-    private void readStringPrefix(final CodeReader code) {
-        ch = code.charAt(index);
-        if ((ch == 'u') || (ch == 'U') || ch == 'L') {
-            index++;
-            if (ch == 'u' && code.charAt(index) == '8') {
-                index++;
-            }
-            ch = code.charAt(index);
-        }
-        if (ch == 'R') {
-            index++;
-            ch = code.charAt(index);
-        }
+  private void readStringPrefix(final CodeReader code) {
+    ch = code.charAt(index);
+    if ((ch == 'u') || (ch == 'U') || ch == 'L') {
+      index++;
+      if (ch == 'u' && code.charAt(index) == '8') {
+        index++;
+      }
+      ch = code.charAt(index);
     }
+    if (ch == 'R') {
+      index++;
+      ch = code.charAt(index);
+    }
+  }
 }

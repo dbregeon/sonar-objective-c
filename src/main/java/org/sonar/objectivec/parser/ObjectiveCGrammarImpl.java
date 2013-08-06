@@ -201,6 +201,7 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
                 );
 
         statement.is(or(
+                ";",
                 and(expression, ";"),
                 compoundStatement,
                 labeledStatement,
@@ -229,7 +230,7 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
         iterationStatement.is(or(
                 and(ObjectiveCKeyword.WHILE, "(", expression, ")", statement),
                 and(ObjectiveCKeyword.DO, statement, ObjectiveCKeyword.WHILE, "(", expression, ")", ";"),
-                and(ObjectiveCKeyword.FOR, "(", expression, ";", expression, ";", opt(expression), ")", statement),
+                and(ObjectiveCKeyword.FOR, "(", opt(expression), ";", opt(expression), ";", opt(expression), ")", statement),
                 and(ObjectiveCKeyword.FOR, "(", declaration, expression, ";", opt(expression), ")", statement),
                 and(ObjectiveCKeyword.FOR, "(", forInIterationVariable, ObjectiveCKeyword.IN, expression, ")")
                 ));
@@ -598,11 +599,11 @@ public class ObjectiveCGrammarImpl extends ObjectiveCGrammar {
              ));
 
         selectorExpression.is(ObjectiveCKeyword.AT_SELECTOR, "(", selectorName, ")");
-        selectorName.is(
-                GenericTokenType.IDENTIFIER,
-                one2n(keywordName)
-                );
-        keywordName.is(opt(GenericTokenType.IDENTIFIER), ":");
+        selectorName.is(or(
+                one2n(keywordName),
+                GenericTokenType.IDENTIFIER
+                ));
+        keywordName.is(GenericTokenType.IDENTIFIER, ":");
 
         typeName.is(one2n(specifierQualifier), opt(abstractDeclarator));
     }
